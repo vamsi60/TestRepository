@@ -1,3 +1,5 @@
+/* Program to Find MostFrequentElement in an Array*/
+
 #include <stdio.h>
 #include <stdlib.h>
 
