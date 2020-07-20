@@ -1,7 +1,8 @@
 #include <iostream>
 #include <string.h>
-//#include <stdarg.h>
-//#include <stdlib.h>
+#include <sys/time.h>
+#include <stdarg.h>
+#include <stdlib.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -72,7 +73,7 @@ void Draw()
 {
 	glViewport(0, 0, 800, 400);
 
-	glClearColor(1.0f, 1.0f, 0.0f, 0.0f);
+	//glClearColor(0.0f, 1.0f, 0.0f, 0.0f);
 	
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -253,35 +254,49 @@ int main()
 		return 1;
 	}
 
-	float vertexArray[] = {
-		 1.0f, -1.0f, 0.0f,		
-		 1.0f,  1.0f, 0.0f,		
-	 	 0.0f,  1.0f, 0.0f,
-	 	-1.0f,  1.0f, 0.0f,
-		-1.0f, -1.0f, 0.0f,
-		 0.0f, -1.0f, 0.0f
-	};
-
-	/*float vertexArray[] = {
-		 1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f,		
-		 1.0f,  1.0f, 0.0f,	1.0f, 0.0f, 0.0f,	
-	 	 0.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-	 	-1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-		-1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-		 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f
-	};*/
+  	float vertexArray[] = { 
+         1.0f, -1.0f, 0.0f,    
+         1.0f,  1.0f, 0.0f,    
+         0.0f,  1.0f, 0.0f,
+        -1.0f,  1.0f, 0.0f,
+        -1.0f, -1.0f, 0.0f,
+         0.0f, -1.0f, 0.0f
+    };
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertexArray);
+
+    float colors[18] = { 
+        1.0f, 0.0f, 0.0f, // V0
+        1.0f, 0.0f, 0.0f, // V1
+        1.0f, 0.0f, 0.0f, // V2
+        0.0f, 0.0f, 1.0f, // V2
+        0.0f, 0.0f, 1.0f, // V3
+        0.0f, 0.0f, 1.0f  // V0
+    };
+
+	unsigned int cbuffer;
+    glGenBuffers(1, &cbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, cbuffer);
+    glBufferData(GL_ARRAY_BUFFER, 18 * sizeof(float), colors, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+  
 	
 	std::string vertexShader =
 	"#version 300 es\n"
 	"\n"
 	"layout(location = 0) in vec4 vPosition;\n"
 	"\n"
+	"layout(location = 1) in vec3 vColor;\n"
+	"\n"
+	"out vec3 fColor;\n"
+	"\n"
 	"void main()\n"
 	"{\n"
 	"	gl_Position = vPosition;\n"
+	"	fColor = vColor;\n"
 	"}\n";
 
 	std::string fragmentShader =
@@ -289,11 +304,13 @@ int main()
 	"\n"
 	"precision mediump float;\n"
 	"\n"
-	"layout(location = 0) out vec4 color;\n"
+	"in vec3 fColor;\n"
+	"\n"
+	"out vec3 color;\n"
 	"\n"
 	"void main()\n"
 	"{\n"
-	"   color = vec4(1.0, 0.0, 0.0, 1.0);\n"
+	"   color = fColor;\n"
 	"}\n";
 
 	unsigned int shader = CreateShader(vertexShader, fragmentShader);
